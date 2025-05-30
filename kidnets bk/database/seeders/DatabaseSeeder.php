@@ -12,12 +12,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        //  \App\Models\User::factory(1)->create();
+          \App\Models\User::factory(1)->create();
         $this->call([
-            BloodTests::class,
-            //ExamenSeeder::class,
-            //XraySeeder::class,
-            /*  BloodTestPreferenceSeeder::class */
+           // BloodTests::class,
+            ExamenSeeder::class,
+            XraySeeder::class,
+            // BloodTestPreferenceSeeder::class 
         ]);
     }
 }

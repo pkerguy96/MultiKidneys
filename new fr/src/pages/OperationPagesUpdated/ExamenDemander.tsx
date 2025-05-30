@@ -16,10 +16,13 @@ import {
   TableHead,
   TableRow,
   Tooltip,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import { useState } from "react";
 import {
   CACHE_KEY_ExamenWithCategory,
+  CACHE_KEY_getFavoriteExams,
   CACHE_KEY_PatienttinyData,
 } from "../../constants";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -35,18 +38,30 @@ import KeyboardBackspaceOutlinedIcon from "@mui/icons-material/KeyboardBackspace
 import { CliniquerensignementProps } from "./Cliniquerensignement";
 import RichTextEditor from "../../components/RichTextEditor";
 import RichEditorPrint from "../RichEditorPrint";
+import {
+  FavoriteListResponse,
+  getFavoriteExamsApiClient,
+} from "../../services/FavoriteExams";
 
 const ExamenDemander: React.FC<CliniquerensignementProps> = ({
   onNext,
   onBack,
 }) => {
+  const [show, setShow] = useState(false);
   const [content, setContent] = useState("");
   const [examen, setExamen] = useState("");
+  const [favorite, setFavorite] = useState("");
   const [fields, setFields] = useState([]);
   const queryParams = new URLSearchParams(location.search);
   const patient_id = queryParams.get("id");
   const navigate = useNavigate();
   const { print, Printable } = RichEditorPrint();
+  const { data: favoriteList, isLoading: isLoading2 } = getGlobal(
+    {} as FavoriteListResponse,
+    CACHE_KEY_getFavoriteExams,
+    getFavoriteExamsApiClient,
+    undefined
+  );
 
   const { data } = getGlobalById(
     {},
@@ -65,10 +80,23 @@ const ExamenDemander: React.FC<CliniquerensignementProps> = ({
     setExamen(value);
   };
 
+  const favoriteChange = (value: any) => {
+    setFavorite(value);
+  };
+
   const handleAddRow = () => {
     if (!examen) return;
     setFields((old) => [...old, { name: examen, type: "" }]);
     setExamen("");
+  };
+
+  const handleAddFavorite = () => {
+    if (!favorite) return;
+    const dt = favoriteList.find((e) => e.title === favorite);
+    dt?.Examens_test.map((e) =>
+      setFields((old) => [...old, { name: e.title, type: "" }])
+    );
+    setFavorite("");
   };
 
   const handleRemoveRow = (index: number) => {
@@ -94,7 +122,7 @@ const ExamenDemander: React.FC<CliniquerensignementProps> = ({
     });
   };
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading || isLoading2) return <LoadingSpinner />;
   return (
     <Paper className="!p-6 w-full flex flex-col gap-4">
       <Box
@@ -129,56 +157,112 @@ const ExamenDemander: React.FC<CliniquerensignementProps> = ({
         </Box>
         <Box className="flex flex-col items-center gap-4 flex-wrap">
           <Box className="w-full flex flex-wrap items-center gap-4">
-            <FormControl className="flex-1">
-              <Autocomplete
-                className="w-full"
-                id="demo-autocomplete-examen"
-                options={Object.entries(printables).flatMap(
-                  ([header, prints]: [string, string[]]) =>
-                    prints.map((print) => ({ group: header, label: print }))
-                )} // Flatten and structure options
-                groupBy={(option) => option.group} // Group by the header
-                getOptionLabel={(option) => option.label} // Display the label
-                value={examen ? { group: "", label: examen } : null} // Bind selected value
-                onChange={(event, newValue) => {
-                  if (newValue) {
-                    examenChange(newValue.label);
-                  }
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Examen"
-                    variant="outlined"
-                    placeholder="Choisissez un examen"
+            {show ? (
+              <Box className="flex-1 flex flex-wrap items-center gap-4">
+                <FormControl className="flex-1">
+                  <Autocomplete
+                    className="w-full"
+                    id="demo-autocomplete-favorite"
+                    options={favoriteList.map((item) => item.title)}
+                    value={favorite ? favorite : null} // Bind selected value
+                    onChange={(event, newValue) => {
+                      if (newValue) {
+                        favoriteChange(newValue);
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Favorite"
+                        variant="outlined"
+                        placeholder="Choisissez un favorite"
+                      />
+                    )}
+                    noOptionsText={
+                      <div>
+                        <div style={{ padding: "8px 16px" }}>
+                          Aucune donnée disponible
+                        </div>
+                        <div
+                          style={{
+                            color: "blue",
+                            cursor: "pointer",
+                            padding: "8px 16px",
+                          }}
+                          onClick={() => navigate("/Settings/Examen")}
+                        >
+                          Ajouter des données
+                        </div>
+                      </div>
+                    }
                   />
-                )}
-                noOptionsText={
-                  <div>
-                    <div style={{ padding: "8px 16px" }}>
-                      Aucune donnée disponible
-                    </div>
-                    <div
-                      style={{
-                        color: "blue",
-                        cursor: "pointer",
-                        padding: "8px 16px",
-                      }}
-                      onClick={() => navigate("/Settings/Examen")}
-                    >
-                      Ajouter des données
-                    </div>
-                  </div>
-                }
-              />
-            </FormControl>
-            <Button
-              className="!px-4 !py-2 !min-w-max !rounded-full"
-              variant="outlined"
-              onClick={handleAddRow}
-            >
-              <AddIcon />
-            </Button>
+                </FormControl>
+                <Button
+                  className="!px-4 !py-2 !min-w-max !rounded-full"
+                  variant="outlined"
+                  onClick={handleAddFavorite}
+                >
+                  <AddIcon />
+                </Button>
+              </Box>
+            ) : (
+              <Box className="flex-1 flex flex-wrap items-center gap-4">
+                <FormControl className="flex-1">
+                  <Autocomplete
+                    className="w-full"
+                    id="demo-autocomplete-examen"
+                    options={Object.entries(printables).flatMap(
+                      ([header, prints]: [string, string[]]) =>
+                        prints.map((print) => ({ group: header, label: print }))
+                    )} // Flatten and structure options
+                    groupBy={(option) => option.group} // Group by the header
+                    getOptionLabel={(option) => option.label} // Display the label
+                    value={examen ? { group: "", label: examen } : null} // Bind selected value
+                    onChange={(event, newValue) => {
+                      if (newValue) {
+                        examenChange(newValue.label);
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Examen"
+                        variant="outlined"
+                        placeholder="Choisissez un examen"
+                      />
+                    )}
+                    noOptionsText={
+                      <div>
+                        <div style={{ padding: "8px 16px" }}>
+                          Aucune donnée disponible
+                        </div>
+                        <div
+                          style={{
+                            color: "blue",
+                            cursor: "pointer",
+                            padding: "8px 16px",
+                          }}
+                          onClick={() => navigate("/Settings/Examen")}
+                        >
+                          Ajouter des données
+                        </div>
+                      </div>
+                    }
+                  />
+                </FormControl>
+                <Button
+                  className="!px-4 !py-2 !min-w-max !rounded-full"
+                  variant="outlined"
+                  onClick={handleAddRow}
+                >
+                  <AddIcon />
+                </Button>
+              </Box>
+            )}
+            <FormControlLabel
+              control={<Switch onChange={() => setShow(!show)} />}
+              label={"Voir " + (show ? "examens" : "favorites")}
+            />
           </Box>
           <Box className="w-full flex flex-col gap-2">
             <TableContainer

@@ -19,6 +19,7 @@ class FavoriteExamensList extends JsonResource
             'title' => $this->title,
             'Examens_test' => $this->examens->map(fn($test) => [
                 'title' => $test->Examen_type,
+                'id'=> $test->id
             ]),
         ];
     }
