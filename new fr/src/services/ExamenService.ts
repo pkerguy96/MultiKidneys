@@ -19,3 +19,6 @@ export const ExamenPreferenceApiClient = new APIClient<any>("examen");
 export const ExamenPreferencewithCategoriesApiClient = new APIClient<any>(
   "getExamenPreferencesWithCategories"
 );
+export const ExamenPreferencewithCategoriesAndIdsApiClient = new APIClient<any>(
+  "getExamenPreferencesWithCategoriesAndIds"
+);

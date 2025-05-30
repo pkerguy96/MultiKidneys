@@ -15,4 +15,8 @@ class Examenpreferences extends Model
     {
         return $this->belongsTo(Examen::class, 'Examen_category_id');
     }
+    public function favoriteLists()
+    {
+        return $this->morphToMany(FavoriteList::class, 'testable', 'favorite_list_items');
+    }
 }

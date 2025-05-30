@@ -100,7 +100,7 @@ const FavoriteList = () => {
               />
             </IconButton>
           </Tooltip>
-          <Box className="">
+          <Box className="-mt-8">
             {categoryComponents[selectedCategory].component}
           </Box>
         </>

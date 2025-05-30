@@ -7,7 +7,10 @@ export const CACHE_KEY_getDoctorFiles = "getDoctorFiles";
 export const CACHE_KEY_OpDetails = ["OpDetails"];
 export const CACHE_KEY_Opnote = "Opnote";
 
-export const CACHE_KEY_PATIENTS = ["patients"]; /*  */
+export const CACHE_KEY_PATIENTS = ["patients"];
+export const CACHE_KEY_getFavoriteBloodTests = ["getFavoriteBloodTests"];
+export const CACHE_KEY_getFavoriteExams = ["getFavoriteExams"];
+export const CACHE_KEY_getFavoriteMedicins = ["getFavoriteMedicins"];
 export const CACHE_KEY_PatientsWaitingRoom = ["PatientCounterWaitingroom"];
 export const CACHE_KEY_NURSES = ["nurses"];
 export const CACHE_KEY_WAITINGLIST = ["Waitinglist"];
@@ -76,6 +79,7 @@ export const CACHE_KEY_xrayCategory = ["xrayCategory"];
 export const CACHE_KEY_ExamenCategory = ["ExamenCategory"];
 export const CACHE_KEY_XraysWithCategory = ["XraysWithCategory"];
 export const CACHE_KEY_ExamenWithCategory = ["ExamenWithCategory"];
+export const CACHE_KEY_ExamenWithCategoryAndId = ["ExamenWithCategoryAndId"];
 
 export const PermissionListpatient = [
   { name: "access_patient", display: "Accès complet" },

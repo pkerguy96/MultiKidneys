@@ -13,7 +13,12 @@ import { bloodTestpreflistApiClient } from "../services/BloodTest";
 interface BloodTestSearchAutocompleteProps {
   label?: string;
   setBloodTest: (
-    bloodTest: { code: string; title: string; price?: number } | null
+    bloodTest: {
+      id: any;
+      code: string;
+      title: string;
+      price?: number;
+    } | null
   ) => void;
   defaultValue?: { code: string; title: string; price?: number } | null;
   className?: string;

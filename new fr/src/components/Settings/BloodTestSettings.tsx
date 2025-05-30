@@ -210,19 +210,5 @@ const BloodTestSettings = () => {
     </Box>
   );
 };
-const autocompleteStyles = {
-  "& .MuiOutlinedInput-root": {
-    backgroundColor: "white",
-    borderColor: "rgba(0, 0, 0, 0.23)",
-    "& fieldset": {
-      borderColor: "rgba(0, 0, 0, 0.23)", // Ensures the border is visible when not focused
-    },
-    "&:hover fieldset": {
-      borderColor: "dark", // Darker border on hover
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: "primary.main", // Border color on focus
-    },
-  },
-};
+
 export default BloodTestSettings;

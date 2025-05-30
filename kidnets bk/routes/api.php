@@ -11,6 +11,7 @@ use App\Http\Controllers\API\V1\BloodTestPreference;
 use App\Http\Controllers\API\V1\CompteRenduController;
 use App\Http\Controllers\API\V1\DashboardKpisController;
 use App\Http\Controllers\API\V1\ExamenController;
+use App\Http\Controllers\API\V1\FavoriteTestsController;
 use App\Http\Controllers\API\V1\NurseController;
 use App\Http\Controllers\API\V1\fileuploadController;
 use App\Http\Controllers\API\V1\FinancialController;
@@ -105,6 +106,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     /* examens */
 
     Route::get('getexamenCategorys', [ExamenController::class, 'getexamenCategorys']);
+    Route::get('getExamenPreferencesWithCategoriesAndIds', [ExamenController::class, 'getExamenPreferencesWithCategoriesAndIds']);
     Route::get('getExamenPreferencesWithCategories', [ExamenController::class, 'getExamenPreferencesWithCategories']);
     route::apiResource('examen', ExamenController::class);
     Route::delete('deleteExamenCategory/{id}', [ExamenController::class, 'deleteExamenCategory']);
@@ -235,4 +237,19 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     Route::delete('deleteRadio/{id}', [OperationStepsController::class, 'deleteRadio']);
     Route::delete('deleteBloodTest/{id}', [OperationStepsController::class, 'deleteBloodTest']);
     Route::delete('deleteOrdonance/{id}', [OperationStepsController::class, 'deleteOrdonance']);
+
+
+    /* favorite exams */
+    route::post('insertFavoriteBloodTests', [FavoriteTestsController::class, 'insertFavoriteBloodTests']);
+    route::get('getFavoriteBloodTests', [FavoriteTestsController::class, 'getFavoriteBloodTests']);
+    route::delete('destroyFavoriteBloodTests/{id}', [FavoriteTestsController::class, 'destroyFavoriteBloodTests']);
+    route::post('insertFavoriteExamens', [FavoriteTestsController::class, 'insertFavoriteExamens']);
+    route::get('getFavoriteexams', [FavoriteTestsController::class, 'getFavoriteexams']);
+    route::delete('destroyFavoriteExamens/{id}', [FavoriteTestsController::class, 'destroyFavoriteExamens']);
+    route::post('insertFavoriteOrdonnances', [FavoriteTestsController::class, 'insertFavoriteOrdonnances']);
+    route::get('getFavoriteOrdonnances', [FavoriteTestsController::class, 'getFavoriteOrdonnances']);
+    route::delete('destroyFavoriteMedicins/{id}', [FavoriteTestsController::class, 'destroyFavoriteMedicins']);
+
+
+    /* favorite exams */
 });

@@ -37,9 +37,10 @@ class BloodTestPreference extends Controller
                             ->orWhereRaw('LOWER(code) LIKE ?', ["%" . strtolower($searchQuery) . "%"]);
                     });
                 })
-                ->get(['title', 'code', 'price', 'delai'])
+                ->get(['id', 'title', 'code', 'price', 'delai'])
                 ->map(function ($preference) {
                     return [
+                        'id' => $preference->id,
                         'title' => $preference->title,
                         'code' => $preference->code,
                         'delai' => $preference->delai,

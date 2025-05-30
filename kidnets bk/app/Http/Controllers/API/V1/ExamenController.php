@@ -64,6 +64,39 @@ class ExamenController extends Controller
             ], 500);
         }
     }
+    public function getExamenPreferencesWithCategoriesAndIds()
+    {
+        $doctorId = $this->checkUserRole();
+
+        try {
+            $xrayPreferences = Examenpreferences::where('doctor_id', $doctorId)
+                ->with(['examen_category' => function ($query) {
+                    $query->withTrashed();
+                }])
+                ->get();
+
+            $result = [];
+
+            foreach ($xrayPreferences as $preference) {
+                $categoryName = $preference->examen_category->name ?? 'Uncategorized';
+
+                $result[$categoryName][] = [
+                    'id' => $preference->id,
+                    'title' => $preference->Examen_type,
+                ];
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $result,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch exam preferences',
+            ], 500);
+        }
+    }
 
 
 

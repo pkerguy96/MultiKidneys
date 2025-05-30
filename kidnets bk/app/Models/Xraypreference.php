@@ -20,4 +20,8 @@ class Xraypreference extends Model
     {
         return $this->belongsTo(XrayCategory::class, 'xray_category_id');
     }
+    public function favoriteLists()
+    {
+        return $this->morphToMany(FavoriteList::class, 'testable', 'favorite_list_items');
+    }
 }
