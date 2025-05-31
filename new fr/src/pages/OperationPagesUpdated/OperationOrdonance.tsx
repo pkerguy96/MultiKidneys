@@ -7,10 +7,13 @@ import {
   FormControl,
   IconButton,
   Tooltip,
+  FormControlLabel,
+  Switch,
+  Autocomplete,
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import KeyboardBackspaceOutlinedIcon from "@mui/icons-material/KeyboardBackspaceOutlined";
 
@@ -27,7 +30,11 @@ import { items } from "../../services/Medicines.json";
 import { useQueryClient } from "@tanstack/react-query";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import PatientSearchAutocomplete from "../../components/PatientSearchAutocomplete";
-import { CACHE_KEY_OrdonanceId, CACHE_KEY_PATIENTS } from "../../constants";
+import {
+  CACHE_KEY_getFavoriteMedicins,
+  CACHE_KEY_OrdonanceId,
+  CACHE_KEY_PATIENTS,
+} from "../../constants";
 import addGlobal from "../../hooks/addGlobal";
 import getGlobalById from "../../hooks/getGlobalById";
 import updateItem from "../../hooks/updateItem";
@@ -41,6 +48,11 @@ import {
   getOrdonanceIdApiClient,
 } from "../../services/XrayService";
 import deleteItem from "../../hooks/deleteItem";
+import getGlobal from "../../hooks/getGlobal";
+import {
+  FavoriteListResponse,
+  getFavoriteMedicinsApiClient,
+} from "../../services/FavoriteExams";
 
 interface FormData {
   date: string;
@@ -55,9 +67,10 @@ const OperationOrdonance: React.FC<CliniquerensignementProps> = ({
   onNext,
   onBack,
 }: any) => {
+  const [show, setShow] = useState(false);
   const [drugs, setDrugs] = useState<any>([]);
   const [name, setName] = useState("");
-
+  const [favoriteDwa, setFavoriteDwa] = useState("");
   const [optionsArray, setOptionsArray] = useState<
     { id: number; name: string }[]
   >([]);
@@ -65,7 +78,7 @@ const OperationOrdonance: React.FC<CliniquerensignementProps> = ({
   const queryClient = useQueryClient();
   const { showSnackbar } = useSnackbarStore();
   const { print, Printable } = usePrint();
-
+  const navigate = useNavigate();
   const { handleSubmit, setValue, getValues, control } = useForm<FormData>({
     defaultValues: {
       date: new Date().toISOString().split("T")[0],
@@ -80,7 +93,12 @@ const OperationOrdonance: React.FC<CliniquerensignementProps> = ({
   const queryParams = new URLSearchParams(search);
   const id = queryParams.get("id");
   const operation_id = queryParams.get("operation_id");
-
+  const { data: FavoriteMedicins, isLoading: isLoading4 } = getGlobal(
+    {} as FavoriteListResponse,
+    CACHE_KEY_getFavoriteMedicins,
+    getFavoriteMedicinsApiClient,
+    undefined
+  );
   const { data: SpecifiedPatient, isLoading: isLoading3 } = getGlobalById(
     {},
     [CACHE_KEY_PATIENTS[0], id!],
@@ -230,7 +248,8 @@ const OperationOrdonance: React.FC<CliniquerensignementProps> = ({
       setValue("patient", formattedPatient);
     }
   }, [SpecifiedPatient]);
-  if (isLoading3 || isLoading) {
+
+  if (isLoading3 || isLoading || isLoading4) {
     return <LoadingSpinner />;
   }
 
@@ -315,61 +334,139 @@ const OperationOrdonance: React.FC<CliniquerensignementProps> = ({
             <label htmlFor="nom" className="w-full md:w-[160px]">
               Médicament:
             </label>
-            <Box className="w-full md:flex-1">
-              <TextField
-                className="w-full"
-                id="outlined-basic"
-                label="Medicament"
-                variant="outlined"
-                value={name}
-                inputProps={{ list: "browsers" }}
-                onChange={(e) => {
-                  setName(e.target.value);
-                }}
-              />
-              <datalist id="browsers">
-                {items.map((e, i) => (
-                  <option key={i} value={e.name} />
-                ))}
-              </datalist>
-            </Box>
-            <Button
-              className="!px-4 !py-2 !min-w-max !rounded-full"
-              variant="outlined"
-              onClick={() => {
-                const valid =
-                  name.trim() !== "" &&
-                  !drugs.some(
-                    (e: any) =>
-                      e.medicine_name.toUpperCase() === name.toUpperCase()
-                  );
-                if (valid) {
-                  const found = items.find((e) => e.name === name);
-                  setDrugs([
-                    ...drugs,
-                    {
-                      ...(found
-                        ? {
-                            medicine_name: found.name,
-                            type: found.type,
-                            price: found.price || "",
-                            note: "",
-                          }
-                        : {
-                            medicine_name: name,
-                            type: "",
-                            price: "",
-                            note: "",
-                          }),
-                      id: drugs.length,
-                    },
-                  ]);
-                }
-                setName("");
-              }}
-            >
-              <AddIcon />
-            </Button>
+            {show ? (
+              <>
+                <Box className="w-full md:flex-1">
+                  <FormControl className="w-full md:flex-1">
+                    <Autocomplete
+                      className="w-full"
+                      id="demo-autocomplete-favorite"
+                      options={FavoriteMedicins.map((item) => item.title)}
+                      value={favoriteDwa ? favoriteDwa : null}
+                      onChange={(event, newValue) => {
+                        if (newValue) {
+                          setFavoriteDwa(newValue);
+                        }
+                      }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Favorite"
+                          variant="outlined"
+                          placeholder="Choisissez un favorite"
+                        />
+                      )}
+                      noOptionsText={
+                        <div>
+                          <div style={{ padding: "8px 16px" }}>
+                            Aucune donnée disponible
+                          </div>
+                          <div
+                            style={{
+                              color: "blue",
+                              cursor: "pointer",
+                              padding: "8px 16px",
+                            }}
+                            onClick={() => navigate("/Settings/favoris")}
+                          >
+                            Ajouter des données
+                          </div>
+                        </div>
+                      }
+                    />
+                  </FormControl>
+                </Box>
+                <Button
+                  className="!px-4 !py-2 !min-w-max !rounded-full"
+                  variant="outlined"
+                  onClick={() => {
+                    const found = FavoriteMedicins.find(
+                      (e) => e.title === favoriteDwa
+                    );
+                    if (!found) return;
+
+                    setDrugs((old) => {
+                      const timestamp = Date.now();
+                      const newItems = found.medicines.map((med, idx) => ({
+                        id: `${timestamp}_${idx}_${Math.floor(
+                          Math.random() * 10000
+                        )}`,
+                        medicine_name: med.name,
+                        type: med.type || "",
+                        price: med.price || "",
+                        note: "",
+                      }));
+                      return [...old, ...newItems];
+                    });
+                    setName("");
+                  }}
+                >
+                  <AddIcon />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Box className="w-full md:flex-1">
+                  <TextField
+                    className="w-full"
+                    id="outlined-basic"
+                    label="Medicament"
+                    variant="outlined"
+                    value={name}
+                    inputProps={{ list: "browsers" }}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                    }}
+                  />
+                  <datalist id="browsers">
+                    {items.map((e, i) => (
+                      <option key={i} value={e.name} />
+                    ))}
+                  </datalist>
+                </Box>
+                <Button
+                  className="!px-4 !py-2 !min-w-max !rounded-full"
+                  variant="outlined"
+                  onClick={() => {
+                    const valid =
+                      name.trim() !== "" &&
+                      !drugs.some(
+                        (e: any) =>
+                          e.medicine_name.toUpperCase() === name.toUpperCase()
+                      );
+                    if (valid) {
+                      const found = items.find((e) => e.name === name);
+                      setDrugs([
+                        ...drugs,
+                        {
+                          ...(found
+                            ? {
+                                medicine_name: found.name,
+                                type: found.type,
+                                price: found.price || "",
+                                note: "",
+                              }
+                            : {
+                                medicine_name: name,
+                                type: "",
+                                price: "",
+                                note: "",
+                              }),
+                          id: drugs.length,
+                        },
+                      ]);
+                    }
+                    setName("");
+                  }}
+                >
+                  <AddIcon />
+                </Button>
+              </>
+            )}
+            <FormControlLabel
+              control={<Switch onChange={() => setShow(!show)} />}
+              label={"Voir " + (show ? "médicaments" : "favorites")}
+            />
           </Box>
           {iserror && (
             <Typography color="error" className="flex justify-center">

@@ -242,7 +242,7 @@ const ExamenDemander: React.FC<CliniquerensignementProps> = ({
                             cursor: "pointer",
                             padding: "8px 16px",
                           }}
-                          onClick={() => navigate("/Settings/Examen")}
+                          onClick={() => navigate("/Settings/favoris")}
                         >
                           Ajouter des données
                         </div>

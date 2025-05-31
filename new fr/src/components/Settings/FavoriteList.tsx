@@ -55,33 +55,31 @@ const FavoriteList = () => {
             Sélectionner une catégorie
           </p>
 
-          <Box className=" flex flex-col md:flex-row gap-6 flex-wrap ">
-            <Box className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap items-cente hover:cursor-pointer ">
-              {Object.entries(categoryComponents).map(
-                ([key, category], index) => {
-                  return (
-                    <Box
-                      key={key}
-                      onClick={() => setSelectedCategory(key)}
-                      className="flex items-center sm:w-[48%] lg:w-[32%] border gap-2 p-4 rounded-lg shadow-md"
-                    >
-                      <Box className="flex items-center justify-center w-6 h-6 mt-1">
-                        {category.icon}
-                      </Box>
-                      <Box className="flex flex-col w-full ">
-                        <p className="font-medium text-black ">
-                          {" "}
-                          {category.label}
-                        </p>
-                        <p className="font-normal text-gray-600 ">
-                          {category.description}
-                        </p>
-                      </Box>
+          <Box className=" grid grid-cols-1 sm:grid-cols-2 w-full gap-6 flex-wrap hover:cursor-pointer ">
+            {Object.entries(categoryComponents).map(
+              ([key, category], index) => {
+                return (
+                  <Box
+                    key={key}
+                    onClick={() => setSelectedCategory(key)}
+                    className="flex items-center  border gap-2 p-4 rounded-lg shadow-md transition-transform duration-300 hover:scale-[1.03] hover:shadow-lg hover:border-blue-500"
+                  >
+                    <Box className="flex items-center justify-center w-6 h-6 mt-1">
+                      {category.icon}
                     </Box>
-                  );
-                }
-              )}
-            </Box>
+                    <Box className="flex flex-col w-full ">
+                      <p className="font-medium text-black ">
+                        {" "}
+                        {category.label}
+                      </p>
+                      <p className="font-normal text-gray-600 ">
+                        {category.description}
+                      </p>
+                    </Box>
+                  </Box>
+                );
+              }
+            )}
           </Box>
         </>
       )}

@@ -19,6 +19,9 @@ class FavoriteListResource extends JsonResource
             'title' => $this->title,
             'blood_tests' => $this->bloodTests->map(fn($test) => [
                 'title' => $test->title,
+                'code' => $test->code,
+                'price' => $test->price,
+                'delai' => $test->delai,
             ]),
         ];
     }

@@ -12,17 +12,24 @@ import {
   TableHead,
   TableRow,
   Tooltip,
+  FormControlLabel,
+  Switch,
+  Autocomplete,
+  TextField,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { CACHE_KEY_OperationBloodTest } from "../../constants";
+import {
+  CACHE_KEY_getFavoriteBloodTests,
+  CACHE_KEY_OperationBloodTest,
+} from "../../constants";
 import addGlobal from "../../hooks/addGlobal";
 import {
   bloodTestApiClient,
   BloodTestProps,
   editBloodTestOperation,
 } from "../../services/BloodTest";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -39,6 +46,12 @@ import deleteItem from "../../hooks/deleteItem";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSnackbarStore } from "../../zustand/useSnackbarStore";
 import BloodTestSearchAutocomplete from "../../components/BloodTestSearchAutocomplete";
+import getGlobal from "../../hooks/getGlobal";
+import {
+  favoriteBloodTests,
+  FavoriteListResponse,
+  getFavoriteBloodTestsApiClient,
+} from "../../services/FavoriteExams";
 
 interface Props {
   blood_test: string[];
@@ -51,8 +64,11 @@ interface BloodTestItem {
 }
 const BloodTest: React.FC<CliniquerensignementProps> = ({ onNext, onBack }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [show, setShow] = useState(false);
   const [analyse, setAnalyse] = useState<any>(NaN);
   const [fields, setFields] = useState<BloodTestItem[]>([]);
+  const [favorite, setFavorite] = useState("");
   const queryParams = new URLSearchParams(location.search);
   const patient_id = queryParams.get("id");
   const operationId = queryParams.get("operation_id");
@@ -66,7 +82,12 @@ const BloodTest: React.FC<CliniquerensignementProps> = ({ onNext, onBack }) => {
     {} as BloodTestProps,
     editBloodTestOperation
   );
-
+  const { data: bloodTests, isLoading: isLoading2 } = getGlobal(
+    {} as FavoriteListResponse,
+    CACHE_KEY_getFavoriteBloodTests,
+    getFavoriteBloodTestsApiClient,
+    undefined
+  );
   const { data: BloodTestHistory, isLoading } = operationId
     ? getGlobalById(
         {} as any,
@@ -94,7 +115,24 @@ const BloodTest: React.FC<CliniquerensignementProps> = ({ onNext, onBack }) => {
   const handleRemoveRow = (index: any) => {
     setFields((old) => old.filter((_current, _index) => _index !== index));
   };
+  const handleAddFavorite = () => {
+    if (!favorite) return;
+    const dt = bloodTests.find((e) => e.title === favorite);
+    console.log(dt, "dt");
 
+    dt?.blood_tests.forEach((e) => {
+      setFields((old) => [
+        ...old,
+        {
+          code: e.code ?? "",
+          title: e.title ?? "",
+          price: e.price ?? undefined,
+          delai: e.delai ?? null,
+        },
+      ]);
+    });
+    setFavorite("");
+  };
   const onSubmit = async () => {
     const formatedData: any = {
       patient_id: patient_id,
@@ -158,7 +196,7 @@ const BloodTest: React.FC<CliniquerensignementProps> = ({ onNext, onBack }) => {
     );
   }, BloodTestHistory);
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading || isLoading2) return <LoadingSpinner />;
   return (
     <Paper className="!p-6 w-full flex flex-col gap-4">
       <Box
@@ -188,21 +226,78 @@ const BloodTest: React.FC<CliniquerensignementProps> = ({ onNext, onBack }) => {
         </Box>
         <Box className="flex gap-4 flex-col">
           <Box className="w-full flex flex-wrap items-center gap-4">
-            <FormControl className="flex-1">
-              <BloodTestSearchAutocomplete
-                showExternalLabel={false}
-                setBloodTest={(value) => {
-                  setAnalyse(value);
-                }}
-              />
-            </FormControl>
-            <Button
-              className="!px-4 !py-2 !min-w-max !rounded-full"
-              variant="outlined"
-              onClick={handleAddRow}
-            >
-              <AddIcon />
-            </Button>
+            {show ? (
+              <>
+                <FormControl className="flex-1">
+                  <Autocomplete
+                    className="w-full"
+                    id="demo-autocomplete-favorite"
+                    options={bloodTests.map((item) => item.title)}
+                    value={favorite ? favorite : null}
+                    onChange={(event, newValue) => {
+                      if (newValue) {
+                        setFavorite(newValue);
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Favorite"
+                        variant="outlined"
+                        placeholder="Choisissez un favorite"
+                      />
+                    )}
+                    noOptionsText={
+                      <div>
+                        <div style={{ padding: "8px 16px" }}>
+                          Aucune donnée disponible
+                        </div>
+                        <div
+                          style={{
+                            color: "blue",
+                            cursor: "pointer",
+                            padding: "8px 16px",
+                          }}
+                          onClick={() => navigate("/Settings/favoris")}
+                        >
+                          Ajouter des données
+                        </div>
+                      </div>
+                    }
+                  />
+                </FormControl>
+                <Button
+                  className="!px-4 !py-2 !min-w-max !rounded-full"
+                  variant="outlined"
+                  onClick={handleAddFavorite}
+                >
+                  <AddIcon />
+                </Button>
+              </>
+            ) : (
+              <>
+                <FormControl className="flex-1">
+                  <BloodTestSearchAutocomplete
+                    showExternalLabel={false}
+                    setBloodTest={(value) => {
+                      setAnalyse(value);
+                    }}
+                  />
+                </FormControl>
+                <Button
+                  className="!px-4 !py-2 !min-w-max !rounded-full"
+                  variant="outlined"
+                  onClick={handleAddRow}
+                >
+                  <AddIcon />
+                </Button>
+              </>
+            )}
+
+            <FormControlLabel
+              control={<Switch onChange={() => setShow(!show)} />}
+              label={"Voir " + (show ? "examens" : "bilans")}
+            />
           </Box>
         </Box>
         <Box className="w-full flex flex-col gap-2">
