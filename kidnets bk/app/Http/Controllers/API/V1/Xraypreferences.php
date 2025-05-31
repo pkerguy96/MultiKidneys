@@ -216,6 +216,7 @@ class Xraypreferences extends Controller
                 $result[$categoryName][] = [
                     'name' => $preference->xray_type,
                     'price' => $preference->price,
+                    'id' => $preference->id
                 ];
             }
 

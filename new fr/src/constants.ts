@@ -80,6 +80,7 @@ export const CACHE_KEY_ExamenCategory = ["ExamenCategory"];
 export const CACHE_KEY_XraysWithCategory = ["XraysWithCategory"];
 export const CACHE_KEY_ExamenWithCategory = ["ExamenWithCategory"];
 export const CACHE_KEY_ExamenWithCategoryAndId = ["ExamenWithCategoryAndId"];
+export const CACHE_KEY_getFavoriteXraysApiClient = ["getFavoriteXraysApiClient"];
 
 export const PermissionListpatient = [
   { name: "access_patient", display: "Accès complet" },

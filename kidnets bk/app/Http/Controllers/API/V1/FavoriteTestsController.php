@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Favorite\FavoriteExamensList;
 use App\Http\Resources\Favorite\FavoriteListResource;
+use App\Http\Resources\Favorite\FavoriteParaclinique;
 use App\Models\FavoriteList;
 use App\Models\FavoriteTest;
 use App\Traits\HttpResponses;
@@ -209,4 +210,62 @@ class FavoriteTestsController extends Controller
     }
 
     /* ordonances */
+
+    /* xrayprefs */
+    public function insertFavoriteXrays(Request $request)
+    {
+        try {
+            $doctorId = $this->checkUserRole();
+            $title = $request->input('title');
+            $ids = $request->input('ids');
+
+            if (!$title || !is_array($ids) || empty($ids)) {
+                return $this->error('Titre ou liste de radios invalide.', 'Invalid input', 422);
+            }
+
+            $favorite = FavoriteList::create([
+                'doctor_id' => $doctorId,
+                'title' => $title,
+            ]);
+
+            foreach ($ids as $id) {
+                $alreadyAttached = $favorite->xrays()
+                    ->wherePivot('testable_id', $id)
+                    ->wherePivot('testable_type', \App\Models\Xraypreference::class)
+                    ->exists();
+
+                if (!$alreadyAttached) {
+                    $favorite->xrays()->attach($id, [
+                        'testable_type' => \App\Models\Xraypreference::class,
+                    ]);
+                }
+            }
+
+            return $this->success(null, 'Liste de radios ajoutée avec succès.', 200);
+        } catch (\Throwable $th) {
+            return $this->error($th->getMessage(), 'Erreur lors de l’ajout.', 500);
+        }
+    }
+    public function getFavoriteXrays()
+    {
+        try {
+            $doctorId = $this->checkUserRole();
+
+            $favorites = FavoriteList::with('xrays')
+                ->where('doctor_id', $doctorId)
+                ->whereHas('xrays')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return $this->success(FavoriteParaclinique::collection($favorites), 'Fetched successfully', 200);
+        } catch (\Throwable $th) {
+            return $this->error($th->getMessage(), 'Something went wrong', 500);
+        }
+    }
+    public function destroyFavoriteXrays($id)
+    {
+        FavoriteList::where('id', $id)->delete();
+        return response()->json(['message' => 'Deleted successfully'], 200);
+    }
+    /* xrayprefs */
 }

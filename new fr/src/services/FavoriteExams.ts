@@ -3,6 +3,7 @@ export const favoriteBloodTests = new APIClient<any>(
   "/insertFavoriteBloodTests"
 );
 export const favoriteExams = new APIClient<any>("/insertFavoriteExamens");
+export const favoriteXrays = new APIClient<any>("/insertFavoriteXrays");
 export const favoriteOrdonances = new APIClient<any>(
   "/insertFavoriteOrdonnances"
 );
@@ -46,6 +47,8 @@ export const getFavoriteExamsApiClient = new APIClient<FavoriteListResponse>(
 
 export const deleteFavoriteExamenApiClient =
   new APIClient<FavoriteListResponse>("/destroyFavoriteExamens");
+export const deleteFavoriteXrayApiClient =
+  new APIClient<FavoriteListResponse>("/destroyFavoriteXrays");
 
 type OrdonnanceItem = {
   name: string;

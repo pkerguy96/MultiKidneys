@@ -250,6 +250,9 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     route::get('getFavoriteOrdonnances', [FavoriteTestsController::class, 'getFavoriteOrdonnances']);
     route::delete('destroyFavoriteMedicins/{id}', [FavoriteTestsController::class, 'destroyFavoriteMedicins']);
 
+    route::post('insertFavoriteXrays', [FavoriteTestsController::class, 'insertFavoriteXrays']);
+    route::get('getFavoriteXrays', [FavoriteTestsController::class, 'getFavoriteXrays']);
+    route::delete('destroyFavoriteXrays/{id}', [FavoriteTestsController::class, 'destroyFavoriteXrays']);
 
     /* favorite exams */
 });

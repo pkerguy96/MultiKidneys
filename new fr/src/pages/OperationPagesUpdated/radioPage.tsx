@@ -1,4 +1,3 @@
-//@ts-nocheck
 import {
   Box,
   Button,
@@ -18,6 +17,8 @@ import {
   Typography,
   Autocomplete,
   Tooltip,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import KeyboardBackspaceOutlinedIcon from "@mui/icons-material/KeyboardBackspaceOutlined";
@@ -38,6 +39,7 @@ import { useSnackbarStore } from "../../zustand/useSnackbarStore";
 import { useNavigate } from "react-router";
 
 import {
+  CACHE_KEY_getFavoriteXraysApiClient,
   CACHE_KEY_XraysWithCategory,
   CACHE_KEY_XraysWithCategoryBACK,
 } from "../../constants";
@@ -49,6 +51,7 @@ import CheckAction from "../../components/CheckAction";
 
 import deleteItem from "../../hooks/deleteItem";
 import { useQueryClient } from "@tanstack/react-query";
+import { getFavoriteXraysApiClient } from "../../services/ExamenService";
 
 interface Field {
   type: string;
@@ -59,6 +62,8 @@ interface Field {
 
 const RadioPage: React.FC<CliniquerensignementProps> = ({ onNext, onBack }) => {
   const [radiology, setRadiology] = useState("");
+  const [show, setShow] = useState(false);
+  const [favorite, setFavorite] = useState("");
   const [fields, setFields] = useState<Field[]>([]);
   const navigate = useNavigate();
   const { showSnackbar } = useSnackbarStore();
@@ -72,7 +77,12 @@ const RadioPage: React.FC<CliniquerensignementProps> = ({ onNext, onBack }) => {
     xraysWithCategoryApiClient,
     undefined
   );
-
+  const { data: favorites, isLoading: isLoading3 } = getGlobal(
+    {},
+    CACHE_KEY_getFavoriteXraysApiClient,
+    getFavoriteXraysApiClient,
+    undefined
+  );
   const { data: HistoryXray, isLoading: isLoading2 } = operation_id
     ? getGlobalById(
         {} as any,
@@ -91,6 +101,23 @@ const RadioPage: React.FC<CliniquerensignementProps> = ({ onNext, onBack }) => {
   const radiologyChange = useCallback((value: string | null) => {
     setRadiology(value || "");
   }, []);
+
+  const handleAddFavorite = () => {
+    if (!favorite) return;
+    const dt = favorites.find((e) => e.title === favorite);
+    dt?.Examens_test.map((e) =>
+      setFields((old) => [
+        ...old,
+        {
+          name: e.title,
+          price: 0,
+          note: "",
+          type: e.type,
+        },
+      ])
+    );
+    setFavorite("");
+  };
 
   const handleAddRow = useCallback(() => {
     if (!radiology) return;
@@ -194,7 +221,7 @@ const RadioPage: React.FC<CliniquerensignementProps> = ({ onNext, onBack }) => {
     );
   }, HistoryXray);
 
-  if (isLoading || isLoading2) return <LoadingSpinner />;
+  if (isLoading || isLoading2 || isLoading3) return <LoadingSpinner />;
   return (
     <Paper className="!p-6 w-full flex flex-col gap-4">
       <Box
@@ -224,37 +251,108 @@ const RadioPage: React.FC<CliniquerensignementProps> = ({ onNext, onBack }) => {
         </Box>
         <Box className="flex flex-col items-center gap-6 flex-wrap">
           <Box className="w-full flex flex-wrap items-center gap-4">
-            <FormControl className="flex-1">
-              {/*     <InputLabel id="demo-simple-select-helper-label">
-                Paraclinique
-              </InputLabel> */}
-              {/*    <Select
-                className="w-full"
-                labelId="demo-simple-select-helper-label"
-                id="demo-simple-select-helper"
-                value={radiology}
-                label="Paraclinique"
-                onChange={radiologyChange}
-              >
-                {Object.keys(data).length > 0
-                  ? Object.keys(data).map((radio, index) => (
-                      <MenuItem key={`radio_${index}`} value={radio}>
-                        {radio}
-                      </MenuItem>
-                    ))
-                  : [
-                      <MenuItem key="no-data" disabled>
-                        Aucune donnée disponible
-                      </MenuItem>,
-                      <MenuItem
-                        key="add-data"
-                        onClick={() => navigate("/settings/xrays")}
-                        style={{ color: "blue" }}
-                      >
-                        Ajouter des données
-                      </MenuItem>,
-                    ]}
-              </Select> */}
+            {show ? (
+              <>
+                <FormControl className="flex-1">
+                  <Autocomplete
+                    className="w-full"
+                    id="demo-autocomplete-favorite"
+                    options={favorites.map((item) => item.title)}
+                    value={favorite ? favorite : null} // Bind selected value
+                    onChange={(event, newValue) => {
+                      if (newValue) {
+                        setFavorite(newValue);
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Favorite"
+                        variant="outlined"
+                        placeholder="Choisissez un favorite"
+                      />
+                    )}
+                    noOptionsText={
+                      <div>
+                        <div style={{ padding: "8px 16px" }}>
+                          Aucune donnée disponible
+                        </div>
+                        <div
+                          style={{
+                            color: "blue",
+                            cursor: "pointer",
+                            padding: "8px 16px",
+                          }}
+                          onClick={() => navigate("/Settings/Examen")}
+                        >
+                          Ajouter des données
+                        </div>
+                      </div>
+                    }
+                  />
+                </FormControl>
+                <Button
+                  className="!px-4 !py-2 !min-w-max !rounded-full"
+                  variant="outlined"
+                  onClick={handleAddFavorite}
+                >
+                  <AddIcon />
+                </Button>
+              </>
+            ) : (
+              <>
+                <FormControl className="flex-1">
+                  <Autocomplete
+                    className="w-full"
+                    id="demo-autocomplete-paraclinique"
+                    options={Object.keys(data)} // Use Object.keys(data) as the options
+                    getOptionLabel={(option) => option} // Define how to display options
+                    value={radiology || null} // Bind selected value
+                    onChange={(_event, newValue) => {
+                      radiologyChange(newValue);
+                    }} // Handle change
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Paraclinique"
+                        variant="outlined"
+                        placeholder="Choisissez une option"
+                      />
+                    )}
+                    renderOption={(props, option) => (
+                      <li {...props} key={`radio_${option}`}>
+                        {option}
+                      </li>
+                    )}
+                    noOptionsText={
+                      <div>
+                        <div style={{ padding: "8px 16px" }}>
+                          Aucune donnée disponible
+                        </div>
+                        <div
+                          style={{
+                            color: "blue",
+                            cursor: "pointer",
+                            padding: "8px 16px",
+                          }}
+                          onClick={() => navigate("/settings/xrays")}
+                        >
+                          Ajouter des données
+                        </div>
+                      </div>
+                    }
+                  />
+                </FormControl>
+                <Button
+                  className="!px-4 !py-2 !min-w-max !rounded-full"
+                  variant="outlined"
+                  onClick={handleAddRow}
+                >
+                  <AddIcon />
+                </Button>
+              </>
+            )}
+            {/*  <FormControl className="flex-1">
               <Autocomplete
                 className="w-full"
                 id="demo-autocomplete-paraclinique"
@@ -302,7 +400,11 @@ const RadioPage: React.FC<CliniquerensignementProps> = ({ onNext, onBack }) => {
               onClick={handleAddRow}
             >
               <AddIcon />
-            </Button>
+            </Button> */}
+            <FormControlLabel
+              control={<Switch onChange={() => setShow(!show)} />}
+              label={"Voir " + (show ? "examens" : "favorites")}
+            />
           </Box>
           <Box className="w-full flex flex-col gap-2">
             <TableContainer

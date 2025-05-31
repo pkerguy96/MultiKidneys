@@ -22,3 +22,6 @@ export const ExamenPreferencewithCategoriesApiClient = new APIClient<any>(
 export const ExamenPreferencewithCategoriesAndIdsApiClient = new APIClient<any>(
   "getExamenPreferencesWithCategoriesAndIds"
 );
+export const getFavoriteXraysApiClient = new APIClient<any>(
+  "getFavoriteXrays"
+);
